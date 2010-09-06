@@ -21,7 +21,6 @@ to allow wordpress to always use the correct data. You only have to administer y
 * Failsafe: Due to the users being created in Wordpress' User-database they can
 also log in when the LDAP-backend currently is gone.
 * Role-Aware: You can map Wordpress' roles to values of an existing LDAP-attribute.
-This currently does not work in 3.0 upwords. I am working on it
 
 For more Information on the configuration have a look at http://andreas.heigl.org/cat/dev/wp/authldap
 
