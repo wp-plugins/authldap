@@ -3,7 +3,7 @@
 Plugin Name: AuthLDAP
 Plugin URI: http://andreas.heigl.org/cat/dev/wp/authldap
 Description: This plugin allows you to use your existing LDAP as authentication base for WordPress
-Version: 1.0
+Version: 1.0.1
 Author: Andreas Heigl <a.heigl@wdv.de>
 Author URI: http://andreas.heigl.org
 */
@@ -15,7 +15,7 @@ function authldap_addmenu()
 {
     if(function_exists('add_options_page'))
     {
-        add_options_page('AuthLDAP', 'AuthLDAP', 9, basename(__FILE__), 'authLdapOptionsPanel');
+        add_options_page('authLdap', 'authLdap', 9, basename(__FILE__), 'authLdapOptionsPanel');
     }
 }
 
@@ -238,7 +238,7 @@ authLdapForm;
 authLdapForm3;
 }
 
-if ( !function_exists('wp_login') ) :
+//if ( !function_exists('wp_login') ) :
 /**
  * This method authenticates a user using either the LDAP or, if LDAP is not 
  * available, the local database
@@ -254,8 +254,9 @@ if ( !function_exists('wp_login') ) :
  * @conf boolean authLDAPDebug true, if debug messages should be logged, false if not. Defaluts to false
  * @todo add the other configuration parameters here
  */
-function wp_login($username, $password, $already_md5 = false)
+function authLdap_login($foo,$username, $password, $already_md5 = false)
 {
+
     global $wpdb, $error;
     try {
         $authLDAP               = get_option("authLDAP");
@@ -305,7 +306,8 @@ function wp_login($username, $password, $already_md5 = false)
             $result = $server->Authenticate ($username, $password, $authLDAPFilter);
             // The user is positively matched against the ldap
             if ( $result ) {
-                $attribs = $server->search(sprintf($authLDAPFilter,$username),array ($authLDAPNameAttr, $authLDAPSecName, $authLDAPMailAttr, $authLDAPWebAttr));
+            	$attributes = array ($authLDAPNameAttr, $authLDAPSecName, $authLDAPMailAttr, $authLDAPWebAttr);
+                $attribs = $server->search(sprintf($authLDAPFilter,$username),$attributes);
                 // First get all the relevant group informations so we can see if 
                 // whether have been changes in group association of the user
                 $groups = $server->search(sprintf($authLDAPGroupFilter,$username), array($authLDAPGroupAttr));
@@ -316,36 +318,47 @@ function wp_login($username, $password, $already_md5 = false)
                     }
                 }
                 $userid=null;
+                $mail = '';
+                if(isset($attribs[0][strtolower($authLDAPMailAttr)][0])){
+                	$mail=$attribs[0][strtolower($authLDAPMailAttr)][0];
+                }
                 if ( $login ){
                     // The user already has an entry in the WP-Database, so we have 
                     // to update the pasword just in case it changed
-                    $userid = wp_update_user( array ('ID'=> $login->ID, 'user_pass' => $password,'user_email' => $attribs[0][strtolower($authLDAPMailAttr)][0]));
+					$array=array('ID'=> $login->ID, 'user_pass' => $password);
+					if(''!=$mail){
+						$array['user_email'] = $mail;
+					}
+                  	$userid = wp_update_user($array);
                 } else {
                     // There is no user in the WP_Database, so we have to create one
                     // For this we have to get the groups of the user so we can find,
                     // what role the user will get
-                    trigger_Error ( print_r ( $result,true));
-                    $userid = wp_create_user($username, $password, $attribs[0][strtolower($authLDAPMailAttr)][0] );
+                    if(''==$mail){
+                    	$mail='me@example.com';
                 }
+                    $userid = wp_create_user($username, $password, $mail );
+                }
+
                 if ( $userid == null){
                     return false;
                 }
-                $meta = get_usermeta($userid, 'wp_capabilities');
+                $meta = get_user_meta($userid, 'wp_capabilities');
                 if ( ! is_array ( $meta )){
                     return false;
                 }
-                update_usermeta($userid,'first_name', $attribs[0][strtolower($authLDAPNameAttr)][0]);
+                update_user_meta($userid,'first_name', $attribs[0][strtolower($authLDAPNameAttr)][0]);
                 $nicename = $attribs[0][strtolower($authLDAPNameAttr)][0];
                 if ( $attribs[0][strtolower($authLDAPSecName)][0]){
-                    update_usermeta($userid, 'last_name', $attribs[0][strtolower($authLDAPSecName)][0]);
+                    update_user_meta($userid, 'last_name', $attribs[0][strtolower($authLDAPSecName)][0]);
                     $nicename .= ' ' . $attribs[0][strtolower($authLDAPSecName)][0];
                 }
                 // Set the Nice-Name for display
                 wp_update_user(array ('ID' => $userid, 'display_name' => $nicename));
                 // Deaktivate the WYSIWYG-Editor for better Performance of the
                 // FCKEditor
-                update_usermeta($userid,'rich_editing', 'false');
-                update_usermeta($userid,'authLDAP',true);
+                update_user_meta($userid,'rich_editing', 'false');
+                update_user_meta($userid,'authLDAP',true);
                 foreach ($authLDAPGroups as $key => $val){
                     // check only if there is a group entry made
                     if ( $val ){
@@ -353,14 +366,14 @@ function wp_login($username, $password, $already_md5 = false)
                             if ( in_array (trim($group),$grp)){
                                 // The user is member of the ldap group and should 
                                 // be added to the appropriate group
-                                update_usermeta($userid,'wp_capabilities',array ($key => 1));
+                                update_user_meta($userid,'wp_capabilities',array ($key => 1));
                                 return true;
                             }
                         }
                     } else
                     {
                         // FIXME remove the credentials, if present!!!!
-                        update_usermeta($userid,'wp_capabilities',array ($key => 0));
+                        update_user_meta($userid,'wp_capabilities',array ($key => 0));
                     }
                 }
                 //$error = __('<strong>Error</strong>: Invalid Credentials supplied');
@@ -397,7 +410,7 @@ function wp_login($username, $password, $already_md5 = false)
         trigger_ERror ( $e->getMessage() . '. Exception thrown in line ' . $e->getLine());
     }
 }
-endif;
+//endif;
 if ( !function_exists('wp_setcookie') ) :
 function wp_setcookie($username, $password, $already_md5 = false, $home = '', $siteurl = '') 
 {
@@ -475,3 +488,4 @@ function authLDAP_show_password_fields()
 add_action('admin_menu', 'authldap_addmenu');
 add_action('admin_head', 'authldap_addcss');
 add_filter('show_password_fields', 'authLDAP_show_password_fields');
+add_filter('authenticate', 'authLdap_login', 10, 3);

@@ -69,6 +69,9 @@ class LDAP
 	        }
 	        $this->server   = $result [6];
 	        $this->username = $result [3];
+	        if(''==trim($this->username)){
+	        	$this->username = 'anonymous';
+	        }
 	        $this->password = $result [5];
 	        $this->baseDn   = substr($result [8],1);
 	    } else
@@ -86,6 +89,9 @@ class LDAP
 		    $this->ch=false;
 		    return false;
 		}
+		ldap_set_option($this->ch, LDAP_OPT_PROTOCOL_VERSION, 3);
+		ldap_set_option($this->ch, LDAP_OPT_REFERRALS, 0);
+
 		return true;
 	}
 	
