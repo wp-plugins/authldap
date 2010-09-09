@@ -8,7 +8,7 @@ Author: Andreas Heigl <a.heigl@wdv.de>
 Author URI: http://andreas.heigl.org
 */
 
-require_once ABSPATH . 'wp-content/plugins/authLdap/ldap.php';
+require_once ABSPATH . 'wp-content/plugins/authldap/ldap.php';
 require_once ABSPATH . 'wp-includes/registration.php';
 
 function authldap_addmenu()
