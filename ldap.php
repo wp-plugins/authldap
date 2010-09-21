@@ -41,7 +41,7 @@ class LDAP
 	 * params   => index 10
 	 * anchor   => index 12
 	 */
-    const URI_REGEX = '/(\w+)\:\/\/(([a-zA-Z0-9]+)(:([^\:\@]+))?@)?([^\/]+)((\/[^#]*)?(#(.*))?)/';
+    const URI_REGEX = '/(\w+)\:\/\/(([^\:]+)(:([^\:\@]+))?@)?([^\/]*)((\/[^#]*)?(#(.*))?)/';
     
     private $server = '';
 	
@@ -67,6 +67,12 @@ class LDAP
 	            throw new Exception ($URI . ' is an invalid LDAP-URI');
 	            return false;
 	        }
+            if ( ! isset ( $result[8])||!trim($result[8]) ) {
+                throw new Exception ( $URI . ' does not contain a search-base');
+            }
+            if ( ! isset ( $result[6])||!trim($result[6]) ) {
+                throw new Exception ( $URI . ' does not contain a server' );
+            }
 	        $this->server   = $result [6];
 	        $this->username = $result [3];
 	        if(''==trim($this->username)){
@@ -104,8 +110,8 @@ class LDAP
 		    $bind = false;
 		    if ( ( ( $this->username ) 
 		        && ( $this->username != 'anonymous') )
-		      && ( $this->dn_passwd != '' ) ){
-		        $bind = @ldap_bind ($this->ch, $this->dn, $this->dn_passwd);
+		      && ( $this->password != '' ) ){
+		        $bind = @ldap_bind ($this->ch, $this->username, $this->password);
 		    } else {
 		        $bind = @ldap_bind($this->ch);
 		    }
