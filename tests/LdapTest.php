@@ -46,7 +46,7 @@ class LdapTest extends PHPUnit_Framework_TestCase
     {
         $ldap = new LDAP($expected[0],$expected[1]);
         foreach ( $given as $key=>$value ) {
-            $this -> assertAttributeEquals($value,$key,$ldap);
+            $this -> assertAttributeEquals($value,'_' . $key,$ldap);
         }
     }
 
@@ -121,8 +121,10 @@ class LdapTest extends PHPUnit_Framework_TestCase
         return array (
                 array('ldap://ldap.example.org'),
                 array('ldap://foo:bar@/cn=example,c=org'),
-                array('ldaps://ldap.example.org'),
+                array('http://ldap.example.org'),
                 array('fooBar'),
+                array('ldap://ldap.example.org/'),
+                array('()123üäö'),
                );
     }
 }

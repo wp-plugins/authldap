@@ -303,16 +303,24 @@ function authLdap_login($foo,$username, $password, $already_md5 = false)
 
             // No cookie, so have to authenticate them via LDAP
             //$authLDAPURI = 'ldap:/foo:bar@server/trallala';
-            $server = new LDAP($authLDAPURI,$authLDAPDebug);
-
-            $result = $server->Authenticate ($username, $password, $authLDAPFilter);
+            $result = false;
+            try {
+                $server = new LDAP($authLDAPURI,$authLDAPDebug);
+                $result = $server->Authenticate ($username, $password, $authLDAPFilter);
+            } catch ( Exception $e) {
+                return false;
+            }
             // The user is positively matched against the ldap
-            if ( $result ) {
+            if ( true === $result ) {
                 $attributes = array ($authLDAPNameAttr, $authLDAPSecName, $authLDAPMailAttr, $authLDAPWebAttr);
-                $attribs = $server->search(sprintf($authLDAPFilter,$username),$attributes);
-                // First get all the relevant group informations so we can see if
-                // whether have been changes in group association of the user
-                $groups = $server->search(sprintf($authLDAPGroupFilter,$username), array($authLDAPGroupAttr));
+                try{
+                    $attribs = $server->search(sprintf($authLDAPFilter,$username),$attributes);
+                    // First get all the relevant group informations so we can see if
+                    // whether have been changes in group association of the user
+                    $groups = $server->search(sprintf($authLDAPGroupFilter,$username), array($authLDAPGroupAttr));
+                }catch(Exception $e){
+                    return false;
+                }
                 $grp = array ();
                 for ( $i = 0; $i < $groups ['count']; $i++ ){
                     for ( $k = 0; $k < $groups[$i][strtolower($authLDAPGroupAttr)]['count']; $k++){
@@ -338,7 +346,7 @@ function authLdap_login($foo,$username, $password, $already_md5 = false)
                     // For this we have to get the groups of the user so we can find,
                     // what role the user will get
                     if(''==$mail){
-                    	$mail='me@example.com';
+                        $mail='me@example.com';
                     }
                     $userid = wp_create_user($username, $password, $mail );
                 }
