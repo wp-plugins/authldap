@@ -8,7 +8,7 @@ Author: Andreas Heigl <a.heigl@wdv.de>
 Author URI: http://andreas.heigl.org
 */
 
-require_once ABSPATH . 'wp-content/plugins/authldap/ldap.php';
+require_once dirname ( __FILE__ ) . '/ldap.php';
 require_once ABSPATH . 'wp-includes/registration.php';
 
 function authldap_addmenu()
@@ -269,7 +269,6 @@ function authLdap_login($foo,$username, $password, $already_md5 = false)
         $authLDAPGroupAttr      = get_option('authLDAPGroupAttr');
         $authLDAPGroupFilter    = get_option('authLDAPGroupFilter');
 
-
         if($authLDAP && !$authLDAPCookieMarker){
             update_option("authLDAPCookierMarker", "LDAP");
             $authLDAPCookieMarker = get_option("authLDAPCookieMarker");
@@ -283,6 +282,26 @@ function authLdap_login($foo,$username, $password, $already_md5 = false)
             $error = __('<strong>Error</strong>: The password field is empty.');
             return false;
         }
+		// First check for valid values and set appropriate defaults
+		if ( ! $authLDAPFilter ) {
+			$authLDAPFilter = '(uid=%s)';
+		}
+		if ( ! $authLDAPNameAttr ) {
+			$authLDAPNameAttr = 'name';
+		}
+		if ( ! $authLDAPMailAttr ) {
+	 		$authLDAPMailAttr = 'mail';
+		}
+		if ( ! $authLDAPUidAttr ) {
+			$authLDAPUidAttr = 'uid';
+		}
+		if ( ! $authLDAPGroupAttr ) {
+			$authLDAPGroupAttr = 'gidNumber';
+		}
+		if ( ! $authLDAPGroupAttr ) {
+			$authLDAPGroupFilter = '(&(objectClass=posixGroup)(memberUid=%s))';
+		}
+
         // First get whether the user is already present in the database
         $login = $wpdb->get_row("SELECT ID, user_login, user_pass, user_email, user_nicename, display_name, user_url, user_status FROM $wpdb->users WHERE user_login = '$username'");
         // Keep the admin user local in case all LDAP servers go down
