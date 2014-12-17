@@ -1,6 +1,6 @@
 <?php
 /**
- * $Id$
+ * $Id: AllTests.php 291905 2010-09-21 07:12:41Z heiglandreas $
  *
  * authLdap - Authenticate Wordpress against an LDAP-Backend.
  * Copyright (c) 2008 Andreas Heigl<andreas@heigl.org>
@@ -37,7 +37,7 @@ if (!defined('PHPUnit_MAIN_METHOD')) {
     define('PHPUnit_MAIN_METHOD', 'AllTests::main');
 }
 /**
- * $Id$
+ * $Id: AllTests.php 291905 2010-09-21 07:12:41Z heiglandreas $
  *
  * authLdap - Authenticate Wordpress against an LDAP-Backend.
  * Copyright (c) 2008 Andreas Heigl<andreas@heigl.org>
