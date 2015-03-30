@@ -58,6 +58,17 @@
                         <input type="checkbox" name="authLDAPCachePW" id="authLDAPCachePW" value="1"<?php echo $tPWChecked; ?>/>
                     </td>
                 </tr>
+                <tr>
+                    <th>
+                        <label for="authLDAPGroupEnable">Map LDAP Groups to wordpress Roles?</label>
+                    </th>
+                    <td>
+                        <input type="checkbox" name="authLDAPGroupEnable" id="authLDAPGroupEnable" value="1"<?php echo $tGroupChecked; ?>/>
+                        <p class="description">
+                            Search LDAP for user's groups and map to Wordpress Roles.
+                        </p>
+                    </td>
+                </tr>
             </table>
         </fieldset>
         <h3 class="title">General Server Settings</h3>
@@ -212,8 +223,11 @@
 <?php endforeach; ?>
                         </select>
                         <p class="description">
-                           Here you can select the default role for users.
-                           If you enable LDAP Groups below, they will take precedence over the Default Role.
+                            Here you can select the default role for users.
+                            If you enable LDAP Groups below, they will take precedence over the Default Role.
+                        </p>
+                        <p class="description">
+                            Existing users will retain their roles unless overriden by LDAP Groups below.
                         </p>
                     </td>
                 </tr>
@@ -221,6 +235,7 @@
         </fieldset>
 
 
+        <div id="authldaprolemapping">
         <h3 class="title">Groups for Roles</h3>
         <fieldset class="options">
             <table class="form-table">
@@ -232,6 +247,17 @@
                         <input type="checkbox" name="authLDAPGroupEnable" id="authLDAPGroupEnable" value="1"<?php echo $tGroupChecked; ?>/>
                         <p class="description">
                             Search LDAP for user's groups and map to Wordpress Roles.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <label for="authLDAPGroupOverUser">LDAP Groups override role of existing users?</label>
+                    </th>
+                    <td>
+                        <input type="checkbox" name="authLDAPGroupOverUser" id="authLDAPGroupOverUser" value="1"<?php echo $tGroupOverUserChecked; ?>/>
+                        <p class="description">
+                            If role determined by LDAP Group differs from existing Wordpress User's role, use LDAP Group.
                         </p>
                     </td>
                 </tr>
@@ -303,6 +329,7 @@
 <?php endforeach; ?>
             </table>
         </fieldset>
+            </div>
         <fieldset class="buttons">
             <p class="submit">
                 <input type="submit" name="ldapOptionsSave" class="button button-primary" value="Save Changes" />
@@ -310,3 +337,19 @@
         </fieldset>
     </form>
 </div>
+
+<script type="text/javascript">
+    elem = document.getElementById('authLDAPGroupEnable');
+    if(! elem.checked) {
+        document.getElementById('authldaprolemapping').setAttribute('style', 'display:none;');
+    }
+
+    elem.addEventListener('change', function(e){
+        if(! e.target.checked) {
+            document.getElementById('authldaprolemapping').setAttribute('style', 'display:none;');
+        } else {
+            document.getElementById('authldaprolemapping').removeAttribute('style');
+        }
+    });
+
+</script>
